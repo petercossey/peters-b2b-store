@@ -1,0 +1,74 @@
+{{#partial "head"}}
+<script async src="{{cdn 'assets/js/prism/prism.js'}}"></script>
+<link rel="stylesheet" href="{{cdn 'assets/js/prism/prism.css'}}">
+
+{{/partial}}
+
+{{#partial "page"}}
+
+{{> components/common/breadcrumbs breadcrumbs=breadcrumbs}}
+
+<section class="page">
+    <h1 class="page-heading">{{ page.title }}</h1>
+
+    <div class="page-content page-content--centered">
+        <p>{{{page.content}}}</p>
+    </div>
+
+</section>
+
+{{/partial}}
+
+{{#partial "page_bottom"}}
+{{#if customer}}
+{{!--
+ */ All of this JavaScript should be ported into the Stencil theme JS regime due to 
+ */ the use of the BigCommerce Storefront API calls. There are non-obvious dependencies
+ */ for Storefront API requests which relate to auth and CSRF protection.
+--}}
+<script src="{{cdn 'assets/js/b3-utils/b3-utils.js'}}"></script>
+<script>
+    const B3Utils = {};
+    const storeHash = '{{settings.store_hash}}';
+    const customerId = '{{customer.id}}';
+    const supportedCurrencies = {
+        'Australia': 'AUD',
+        'New Zealand': 'NZD'
+    };
+    const currency_selector = {{{json currency_selector}}};
+    const cartId = '{{cart_id}}';
+
+    // Set and update the default currency
+    ;(async(B3Utils, customerId, storeHash, supportedCurrencies, currency_selector, cartId) => {
+        console.log('running set/update default currency');
+        let companyCurrency = localStorage.getItem('companyCurrency');
+        if (!companyCurrency) {
+            console.log('we need to set companyCurrency')
+            // Request relevant info from B3 Storefront API
+            B3Utils.currentCustomerToken = await getBcToken();
+            B3Utils.B2BToken = await getB3Token(customerId, B3Utils.currentCustomerToken, storeHash);
+            B3Utils.B3User = await getB3UserInfo(customerId, B3Utils.B2BToken);
+            B3Utils.Company = await getB3Company(B3Utils.B3User.userId, B3Utils.B2BToken);
+
+            localStorage.setItem('companyCurrency', supportedCurrencies[B3Utils.Company.country]);
+            companyCurrency = localStorage.getItem('companyCurrency');
+        }
+
+        // If companyCurrency != active currency, update currency accordingly.
+        if (companyCurrency !== currency_selector.active_currency_code) {
+            const cartHasItems = cartId !== '';
+
+            // change currency to companyCurrency
+            if (cartHasItems) {
+                await updateCartCurrency(companyCurrency, cartId);
+            }
+
+            updateStoreCurrency(companyCurrency, currency_selector);
+        }
+
+    })(B3Utils, customerId, storeHash, supportedCurrencies, currency_selector, cartId)
+</script>
+{{/if}}
+{{/partial}}
+
+{{> layout/base}}
