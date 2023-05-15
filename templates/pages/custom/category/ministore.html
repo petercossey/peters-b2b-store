@@ -1,58 +1,3 @@
----
-category:
-    shop_by_price: true
-    products:
-        limit: {{theme_settings.categorypage_products_per_page}}
-cart: true
-gql: "query CategoryTree3Levels($categoryId: Int!) {
-    site {
-        categoryTree(rootEntityId: $categoryId) {
-            ...CategoryFields
-            children {
-                ...CategoryFields
-            }
-        }
-        search {
-            searchProducts(
-                filters: {
-                    categoryEntityId: $categoryId
-                }
-            ) {
-                products {
-                    edges {
-                        node {
-                            entityId
-                            name
-                            prices {
-                                price {
-                                    value
-                                }
-                            }
-                            defaultImage {
-                                url(width: 640)
-                            }
-                            metafields(namespace: \"customer_notes\") {
-                                edges {
-                                    node {
-                                        key,
-                                        value,
-                                        entityId
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-fragment CategoryFields on CategoryTreeItem {
-    name
-    path
-    entityId
-}"
----
 {{inject "categoryProductsPerPage" theme_settings.categorypage_products_per_page}}
 {{#partial "head"}}
     {{#if pagination.category.previous}}
@@ -74,6 +19,9 @@ fragment CategoryFields on CategoryTreeItem {
         class="category-header-image"
     }}
 {{/if}}
+<h2>ministore.html</h2>
+<pre>Output of &#123;&#123;JSONstringify gql&#125;&#125;</pre>
+<textarea>{{JSONstringify gql}}</textarea>
 {{#unless theme_settings.hide_category_page_heading }}
     <h1 class="page-heading">{{category.name}}</h1>
     {{{region name="category_below_header"}}}

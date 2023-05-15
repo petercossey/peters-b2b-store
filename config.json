@@ -105,8 +105,8 @@
     "default_image_product": "img/ProductDefault.gif",
     "default_image_gift_certificate": "img/GiftCertificate.png",
     "body-font": "Google_Karla_400",
-    "headings-font": "Google_Montserrat_400",
-    "fontSize-root": 14,
+    "headings-font": "Google_Open+Sans_400",
+    "fontSize-root": 16,
     "fontSize-h1": 28,
     "fontSize-h2": 25,
     "fontSize-h3": 22,
@@ -389,8 +389,7 @@
           "home_garden"
         ]
       },
-      "images": {
-      },
+      "images": {},
       "settings": {
         "hide_breadcrumbs": false,
         "hide_page_heading": false,
