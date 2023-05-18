@@ -5,6 +5,10 @@ category:
         limit: {{theme_settings.categorypage_products_per_page}}
 cart: true
 gql: "query CategoryTree3Levels($categoryId: Int!) {
+    customer {
+        entityId,
+        customerGroupId
+    }
     site {
         categoryTree(rootEntityId: $categoryId) {
             ...CategoryFields
