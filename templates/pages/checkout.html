@@ -1,3 +1,6 @@
+---
+cart: true
+---
 {{#partial "head"}}
 
 {{{ checkout.checkout_head }}}
@@ -31,6 +34,82 @@
 {{{ checkout.checkout_content }}}
 
 {{{ footer.scripts }}}
+
+{{~inject 'cartId' cart_id}}
+
+<style>
+    #checkout-payto-button {
+        display: none;
+    }
+    body.payto-enabled #checkout-payto-button {
+        display: block;
+    }
+    body.payto-enabled #checkout-payment-continue {
+        display: none;
+    }
+</style>
+<script>
+    const jsContext = JSON.parse({{jsContext}});
+    const cartId = jsContext.cartId;
+    const documentBody = document.getElementsByTagName('body')[0];
+
+    // Setup PayTo payment button
+    const payToButton = document.createElement('button');
+    payToButton.id = 'checkout-payto-button';
+    payToButton.className = 'button button--action button--large button--slab optimizedCheckout-buttonPrimary';
+    payToButton.type = 'button';
+    payToButton.textContent = 'Place Order with PayTo';
+    payToButton.onclick = (e) => {
+        alert(`Start PayTo flow for cartId ${cartId}`);
+        //window.location = '//custom-payment.app/payto?cartId=';
+    }
+
+    // Manage payTo button display state
+    const payToCheckoutState = {
+        payto_button: undefined,
+    }
+
+    const updatePayToCheckout = (isSelected, parentElement) => {
+        // Show the payto button
+        if ((payToCheckoutState.payto_button !== true) && isSelected) {
+            parentElement.appendChild(payToButton);
+            documentBody.classList.add('payto-enabled')
+            payToCheckoutState.payto_button = true;
+        }
+        // Hide the payto button
+        const differentPaymentSelected = (payToCheckoutState.payto_button === true) && (isSelected === false);
+        if (differentPaymentSelected) {
+            console.log('hide payto button');
+            documentBody.classList.remove('payto-enabled');
+            payToButton.remove();
+            payToCheckoutState.payto_button = false;
+        }
+    }
+
+    // Handle any mutation of the checkout app relevant to payTo button hide/show
+    const checkoutObserver = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+            if (mutation.addedNodes.length > 0) {
+                // availibity of the paymentForm and radioMoneyOrder elements are proxies for the payment section UI and changes we need to make.
+                const paymentForm = document.querySelector('form.checkout-form[data-test="payment-form"]');
+                const radioMoneyOrder = document.getElementById('radio-moneyorder');
+
+                if (paymentForm && radioMoneyOrder) {
+                    // payment form and payto payment option DOM are available.
+                    updatePayToCheckout(radioMoneyOrder.checked, paymentForm);
+                }
+            }
+        })
+    })
+
+    // Observe #checkout-app DOM
+    checkoutObserver.observe(document.getElementById('checkout-app'), {
+        subtree: true,
+        childList: true,
+        attributes: true,
+        characterData: true
+    })
+</script>
 
 {{/partial}}
 
