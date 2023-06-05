@@ -1,0 +1,24 @@
+{{!--
+    Check if product has any product file custom fields, i.e. field name with the prefix: product-file:
+    The field name substring after the "product-file:" part will be treated as the title for the link.
+    The value of the field will be the relative URL containing the WebDAV file.
+--}}
+{{assignVar 'hasProductFiles' 0}}
+{{#each product.custom_fields}}
+    {{#if (first (split name ':')) '===' 'product-file'}}
+        {{assignVar 'hasProductFiles' 1}}
+    {{/if}}
+{{/each}}
+
+{{#if (getVar 'hasProductFiles')}}
+    <div style="margin: 1rem 0; padding: 0 0.5rem; border: 1px dashed grey;">
+        <h4>Product files</h4>
+        <ul>
+        {{#each product.custom_fields}}
+            {{#if (first (split name ':')) '===' 'product-file'}}
+                <li><a href="{{value}}">{{last (split this.name ':')}}</a></li>
+            {{/if}}
+        {{/each}}
+        </ul>
+    </div>
+{{/if}}

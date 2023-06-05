@@ -217,10 +217,17 @@
                     </div>
                 {{/if}}
 
+                {{#filter product.custom_fields 'Product spec sheet' property='name'}}
+                    <div style="margin: 1rem 0; padding: 0.5rem; border: 1px dashed grey;">Download: <a href="{{value}}">Product spec sheet PDF</a></div>
+                {{/filter}}
+
                 {{#if theme_settings.show_custom_fields_tabs '!==' true}}
                     {{#each product.custom_fields}}
-                        <dt class="productView-info-name">{{name}}:</dt>
-                        <dd class="productView-info-value">{{{ sanitize value}}}</dd>
+                        {{!-- do not display the 'Product spec sheet' custom field here --}}
+                        {{#isnt name 'Product spec sheet'}}
+                            <dt class="productView-info-name">{{name}}:</dt>
+                            <dd class="productView-info-value">{{{ sanitize value}}}</dd>
+                        {{/isnt}}
                     {{/each}}
                 {{/if}}
             </dl>
@@ -270,6 +277,7 @@
         {{else}}
             {{> components/products/description}}
         {{/if}}
+        {{> components/custom/product-files}}
     </article>
 </div>
 
