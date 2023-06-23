@@ -42,7 +42,7 @@
                                 data-default
                             {{/if}}
                             {{#if ../required}}required{{/if}}>
-                        <label data-product-attribute-value="{{id}}" class="form-label" for="attribute_productlist_{{../id}}_{{id}}">{{label}}</label>
+                        <label data-product-option-type="product-list-item" data-product-id="{{data}}" data-product-attribute-value="{{id}}" class="form-label" for="attribute_productlist_{{../id}}_{{id}}">{{label}}</label>
                     </div>
                 </li>
             {{/each}}
@@ -55,7 +55,7 @@
                value="0"
                id="attribute_productlist_0_{{id}}"
                {{#if defaultValue '==' 0}}checked{{/if}}>
-        <label class="form-label" for="attribute_productlist_0_{{id}}">{{lang 'products.none'}}</label>
+        <label data-product-option-type="product-list-item" data-product-id="{{data}}" class="form-label" for="attribute_productlist_0_{{id}}">{{lang 'products.none'}}</label>
         {{/unless}}
         {{#each values}}
             <input
@@ -66,7 +66,49 @@
                 id="attribute_productlist_{{../id}}_{{id}}"
                 {{#if selected}}checked{{/if}}
                 {{#if ../required}}required{{/if}}>
-            <label data-product-attribute-value="{{id}}" class="form-label" for="attribute_productlist_{{../id}}_{{id}}">{{label}}</label>
+            <label data-product-option-type="product-list-item" data-product-id="{{data}}" data-product-attribute-value="{{id}}" class="form-label" for="attribute_productlist_{{../id}}_{{id}}">{{label}}</label>
         {{/each}}
     {{/if}}
 </div>
+
+{{#partial "page_bottom"}}
+<script>
+    // update each label[data-product-option-type="product-list-item"] with price data
+    const pickListProductIds = '122,123,124';
+
+    let fetchedPickList = null;
+
+    // See https://developer.bigcommerce.com/api-docs/storefront/graphql/graphql-api-overview#querying-within-a-bigcommerce-storefront
+    fetch('/graphql', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer {{ settings.storefront_api.token }}'
+        },
+        body: JSON.stringify({
+            query: `query PickListPrices {
+                site {
+                    products (entityIds: [${pickListProductIds}]) {
+                        edges {
+                            node {
+                                prices(includeTax: true) {
+                                    price {
+                                        value
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }`
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        fetchedPickList = data;
+        console.log('Pick list products fetched:', fetchedPickList);
+    })
+    .catch(err => console.error(err));
+</script>
+{{/partial}}
