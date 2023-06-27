@@ -245,8 +245,12 @@
                 <input type="hidden" name="product_id" value="{{product.id}}"/>
                 <div data-product-option-change style="display:none;">
                     {{inject 'showSwatchNames' theme_settings.show_product_swatch_names}}
+                    {{assignVar 'hasPickList' 0}}
                     {{#each product.options}}
                         {{{dynamicComponent 'components/products/options'}}}
+                        {{#if partial '===' 'product-list'}}
+                            {{assignVar 'hasPickList' 1}}
+                        {{/if}}
                     {{/each}}
                 </div>
                 <div class="form-field form-field--stock{{#unless product.stock_level}} u-hiddenVisually{{/unless}}">
@@ -286,3 +290,7 @@
     <div class="modal-content"></div>
     <div class="loadingOverlay"></div>
 </div>
+
+{{#if (getVar 'hasPickList')}}
+    {{> components/custom/pick-list-prices }}
+{{/if}}

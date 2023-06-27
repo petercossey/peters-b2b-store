@@ -1,0 +1,68 @@
+{{#partial "page_bottom"}}
+<script>
+    // Get product IDs for GraphQL query on product prices.
+    const pickListProductIds = []
+    {{#each product.options}}
+        {{#if partial '===' 'product-list'}}
+            pickListProductIds.push({{pluck values 'data'}})
+        {{/if}}
+    {{/each}}
+    
+    // Filter out duplicate product IDs
+    const uniquePickListProductIds = [... new Set(pickListProductIds)]
+
+    let fetchedPickList = null;
+
+    // See https://developer.bigcommerce.com/api-docs/storefront/graphql/graphql-api-overview#querying-within-a-bigcommerce-storefront
+    fetch('/graphql', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer {{ settings.storefront_api.token }}'
+        },
+        body: JSON.stringify({
+            query: `query PickListPrices {
+                site {
+                    products (entityIds: [${uniquePickListProductIds}]) {
+                        edges {
+                            node {
+                                entityId
+                                prices(includeTax: true) {
+                                    price {
+                                        value
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }`
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        fetchedPickList = data;
+        console.log('Pick list products fetched:', fetchedPickList);
+
+        // Use Array.prototype.reduce() to create a key/value object made of of productId: price
+        pickListPriceMap = fetchedPickList.data.site.products.edges.reduce((obj, item) => {
+            obj[item.node.entityId] = item.node.prices.price.value;
+            return obj;
+        }, {});
+
+        // Update the pick-list label elements with prices from GraphQL
+        const pickListNodes = document.querySelectorAll('[data-product-option-type="product-list-item"]');
+        pickListNodes.forEach(node => {
+            const priceElement = document.createElement('span');
+            priceElement.style.marginLeft = '0.5rem';
+
+            // update price
+            const productId = node.getAttribute('data-product-id');
+            priceElement.textContent = (pickListPriceMap[productId] > 0) ? '$' + parseFloat(pickListPriceMap[productId]).toFixed(2) : '$0.00';
+            node.appendChild(priceElement);
+        });
+    })
+    .catch(err => console.error(err));
+</script>
+{{/partial}}
